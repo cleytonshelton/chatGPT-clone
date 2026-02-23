@@ -5,11 +5,12 @@ import { FcMindMap } from "react-icons/fc";
 const SlowText = (props) => {
   const { speed, text } = props;
 
-  const [placeholder, setPlaceholder] = useState(text[0]);
-
+  const [placeholder, setPlaceholder] = useState(text ? text[0] : "");
   const index = useRef(0);
 
   useEffect(() => {
+    if (!text) return;
+    
     function tick() {
       index.current++;
       setPlaceholder((prev) => prev + text[index.current]);

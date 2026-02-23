@@ -10,13 +10,13 @@ const ChatLogo = () => {
   );
 };
 
-const Chat = () => {
+const Chat = ({ messages, onSendMessage, loading }) => {
   return (
     <div className="chat_container">
       <ChatLogo />
       <div className="chat_selected_container">
-        <Messages />
-        <NewMessageInput />
+        <Messages messages={messages} />
+        <NewMessageInput onSendMessage={onSendMessage} loading={loading} />
       </div>
     </div>
   );
