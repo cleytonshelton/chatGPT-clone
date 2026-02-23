@@ -13,6 +13,7 @@ const ChatLogo = () => {
 const Chat = () => {
   return (
     <div className="chat_container">
+      <ChatLogo />
       <div className="chat_selected_container">
         <Messages />
         <NewMessageInput />
