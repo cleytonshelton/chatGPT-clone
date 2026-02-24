@@ -1,10 +1,13 @@
 import Dashboard from "./Dashboard/Dashboard";
+import { ThemeProvider } from "./ThemeContext";
 
 function App() {
   return (
-    <div className="App">
-      <Dashboard />
-    </div>
+    <ThemeProvider>
+      <div className="App">
+        <Dashboard />
+      </div>
+    </ThemeProvider>
   );
 }
 

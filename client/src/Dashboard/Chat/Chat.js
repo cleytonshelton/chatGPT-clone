@@ -6,6 +6,7 @@ const ChatLogo = () => {
   return (
     <div className="chat_gpt_logo_container">
       <p className="chat_gpt_logo">ChatGPT</p>
+      <p className="chat_gpt_logo_subtitle">Start a conversation</p>
     </div>
   );
 };
@@ -13,7 +14,7 @@ const ChatLogo = () => {
 const Chat = ({ messages, onSendMessage, loading }) => {
   return (
     <div className="chat_container">
-      <ChatLogo />
+      {messages.length === 0 && <ChatLogo />}
       <div className="chat_selected_container">
         <Messages messages={messages} />
         <NewMessageInput onSendMessage={onSendMessage} loading={loading} />
