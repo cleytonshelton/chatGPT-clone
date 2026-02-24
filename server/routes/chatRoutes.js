@@ -100,4 +100,59 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Update chat (add messages)
+router.put("/:id", async (req, res) => {
+  try {
+    const Chat = getChat();
+    const { messages } = req.body;
+    
+    const chat = await Chat.findByIdAndUpdate(
+      req.params.id,
+      { messages },
+      { new: true }
+    );
+    
+    if (!chat) return res.status(404).json({ error: "Chat not found" });
+    res.json(chat);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update chat title
+router.put("/:id/title", async (req, res) => {
+  try {
+    const Chat = getChat();
+    const { title } = req.body;
+    
+    if (!title) {
+      return res.status(400).json({ error: "Title is required" });
+    }
+
+    const chat = await Chat.findByIdAndUpdate(
+      req.params.id,
+      { title },
+      { new: true }
+    );
+    
+    if (!chat) return res.status(404).json({ error: "Chat not found" });
+    res.json(chat);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a chat
+router.delete("/:id", async (req, res) => {
+  try {
+    const Chat = getChat();
+    const chat = await Chat.findByIdAndDelete(req.params.id);
+    
+    if (!chat) return res.status(404).json({ error: "Chat not found" });
+    res.json({ message: "Chat deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
