@@ -9,6 +9,7 @@ const Dashboard = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [chats, setChats] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Fetch saved chats on mount
   useEffect(() => {
@@ -151,8 +152,10 @@ const Dashboard = () => {
         onDeleteChat={handleDeleteChat}
         onRenameChat={handleRenameChat}
         currentChatId={chatId}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
-      <Chat messages={messages} onSendMessage={handleSendMessage} loading={loading} />
+      <Chat messages={messages} onSendMessage={handleSendMessage} loading={loading} sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
     </div>
   );
 };

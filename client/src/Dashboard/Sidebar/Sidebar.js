@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import NewChatButton from "./NewChatButton";
 import { ThemeContext } from "../../ThemeContext";
-import { BsSun, BsMoon, BsTrash, BsPencil } from "react-icons/bs";
+import { BsSun, BsMoon, BsTrash, BsPencil, BsChevronLeft } from "react-icons/bs";
 
 const Sidebar = ({ 
   onNewChat, 
@@ -9,7 +9,9 @@ const Sidebar = ({
   onSelectChat,
   onDeleteChat,
   onRenameChat,
-  currentChatId
+  currentChatId,
+  sidebarOpen,
+  onToggleSidebar
 }) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [editingId, setEditingId] = useState(null);
@@ -34,7 +36,17 @@ const Sidebar = ({
   };
 
   return (
-    <div className="sidebar_container">
+    <div className={`sidebar_container ${!sidebarOpen ? 'sidebar_closed' : ''}`}>
+      <div className="sidebar_header">
+        <div className="sidebar_logo">ChatGPT</div>
+        <button 
+          className="sidebar_close_button" 
+          onClick={onToggleSidebar}
+          title="Close sidebar"
+        >
+          <BsChevronLeft size={18} />
+        </button>
+      </div>
       <NewChatButton onClick={onNewChat} />
       
       <div className="sidebar_conversations">
