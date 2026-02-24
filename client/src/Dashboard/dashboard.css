@@ -351,13 +351,16 @@
     margin-bottom: 8px;
 }
 
-.message_container[style*="rgb(247, 247, 248)"],
-[data-theme="dark"] .message_container[style*="rgb(247, 247, 248)"] {
+.message_container.ai_message {
     background-color: var(--message-ai-bg);
     margin-left: -24px;
     margin-right: -24px;
     padding-left: 24px;
     padding-right: 24px;
+}
+
+.message_container.user_message {
+    background-color: transparent;
 }
 
 .message {
@@ -384,10 +387,15 @@
     border-radius: 50%;
     font-size: 16px;
     margin-right: 12px;
+    color: var(--text-secondary);
 }
 
 .message_container[style*="rgb(247, 247, 248)"] .message_avatar_container,
 [data-theme="dark"] .message_container[style*="rgb(247, 247, 248)"] .message_avatar_container {
+    background-color: transparent;
+}
+
+.message_container.ai_message .message_avatar_container {
     background-color: transparent;
 }
 

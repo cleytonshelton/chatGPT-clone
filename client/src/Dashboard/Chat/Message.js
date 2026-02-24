@@ -41,8 +41,7 @@ const Message = ({ content, aiMessage, animate }) => {
 
   return (
     <div
-      className="message_container"
-      style={{ background: aiMessage ? "rgb(247, 247, 248)" : "white" }}
+      className={`message_container ${aiMessage ? 'ai_message' : 'user_message'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
