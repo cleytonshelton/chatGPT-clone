@@ -89,7 +89,7 @@ There is a need for a **structured, context-aware conversational platform** that
 
 ### Sprint 1 Deliverables
 1. Build the **Real-Time Messaging System**  
-   - Implement sending messages from client to server via WebSockets  
+   - Implement sending messages from client to server  
    - Display messages in order in the chat UI  
    - Handle connection interruptions and automatic reconnection  
 
@@ -103,56 +103,48 @@ There is a need for a **structured, context-aware conversational platform** that
 ---
 
 3. Develop **Conversation Persistence**  
-   - Store messages and conversations in IndexedDB  
+   - Store messages and conversations in MongoDB  
    - Restore conversations on page reload  
    - Ensure message order is preserved per conversation  
 
 ---
 
-4. Implement **Multi-Conversation Management & Basic Markdown/Code Rendering**  
+4. Implement **Multi-Conversation Management**  
    - Enable creating, renaming, deleting, and switching conversations  
-   - Render Markdown for messages  
-   - Highlight code blocks for readability  
 
 ---
 
 ### Sprint 2 Deliverables
-5. Add **Context Depth Control**  
-   - Allow users to set how much previous conversation history is sent to AI  
-   - Apply context depth immediately to new messages  
-   - Limit context size according to user preference  
 
----
-
-6. Implement **Conversation Branching**  
+5. Implement **Conversation Branching**  
    - Enable creating a new conversation from a previous message  
    - Maintain parent-child relationships between conversations  
    - Ensure original conversation remains unchanged  
 
 ---
 
-7. Add **Conversation Search and Highlighting**  
+6. Add **Conversation Search and Highlighting**  
    - Implement keyword search within conversations  
    - Highlight matching terms in messages  
    - Update search results dynamically as input changes  
 
 ---
 
-8. Enable **Exporting Conversations**  
+7. Enable **Exporting Conversations**  
    - Allow exporting conversations as Markdown or JSON files  
    - Preserve message order and timestamps  
    - Support exporting individual conversations  
 
 ---
 
-9. Implement **Theme and Interface Customization**  
+8. Implement **Theme and Interface Customization**  
    - Add light and dark mode toggle  
    - Save theme preferences across sessions  
    - Ensure UI is responsive for desktop and mobile screens  
 
 ---
 
-10. Conduct **Testing and Final Polishing**  
+9. Conduct **Testing and Final Polishing**  
    - Perform full manual testing of all features  
    - Fix bugs in messaging, AI responses, persistence, branching, search, export, and themes  
    - Prepare documentation and presentation materials
