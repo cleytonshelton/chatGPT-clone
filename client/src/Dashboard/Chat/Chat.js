@@ -22,7 +22,7 @@ const Chat = ({ messages, onSendMessage, loading, sidebarOpen, onToggleSidebar }
       )}
       {messages.length === 0 && <ChatLogo />}
       <div className="chat_selected_container">
-        <Messages messages={messages} />
+        <Messages messages={messages} loading={loading} />
         <NewMessageInput onSendMessage={onSendMessage} loading={loading} />
       </div>
     </div>

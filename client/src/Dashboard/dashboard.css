@@ -568,3 +568,33 @@
         flex: 1;
     }
 }
+
+.ai_typing_indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0 44px;
+}
+.ai_typing_dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  animation: aiTypingBlink 1.2s infinite;
+  margin-right: 2px;
+}
+.ai_typing_dot:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.ai_typing_dot:nth-child(3) {
+  animation-delay: 0.6s;
+}
+@keyframes aiTypingBlink {
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
+}
+.ai_typing_text {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-style: italic;
+}
