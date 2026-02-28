@@ -15,7 +15,7 @@ const Messages = ({ messages = [], loading }) => {
               key={index}
               content={msg.content}
               aiMessage={msg.role === "assistant"}
-              animate={msg.role === "assistant"}
+              animate={msg.role === "assistant" && index === messages.length - 1 && loading}
             />
           ))}
           {loading && (
