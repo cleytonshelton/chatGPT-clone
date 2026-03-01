@@ -29,76 +29,62 @@ const Dashboard = () => {
   const handleSendMessage = async (message) => {
     try {
       setLoading(true);
-      // Add user message immediately to UI
-      setMessages(prev => [...prev, { role: "user", content: message }]);
-
       console.log("Sending message:", message);
 
-      // First, save the user message to database
+      // Show user message immediately
+      setMessages(prev => [...prev, { role: "user", content: message }]);
+
       let currentChatId = chatId;
-      
+      // If no chatId, create a new chat with empty messages and title
       if (!currentChatId) {
-        // Create new chat with user message
         const saveResponse = await fetch("http://localhost:5000/api/chats", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: message.slice(0, 30) + (message.length > 30 ? "..." : ""),
-            messages: [{ role: "user", content: message }]
+            messages: []
           })
         });
-        
         if (saveResponse.ok) {
           const savedChat = await saveResponse.json();
           currentChatId = savedChat._id;
           setChatId(currentChatId);
         }
-      } else {
-        // Update existing chat with user message
-        await fetch(`http://localhost:5000/api/chats/${currentChatId}`, {
-          method: "PUT",
+      }
+
+      // Now send message to /message endpoint (which will add user message and AI reply)
+      if (currentChatId) {
+        const response = await fetch("http://localhost:5000/api/chats/message", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages: [...messages, { role: "user", content: message }]
+            chatId: currentChatId,
+            message: message
           })
         });
-      }
-      
-      // Refresh chats list to show in sidebar
-      fetchChats();
 
-      // Now try to get AI response
-      const response = await fetch("http://localhost:5000/api/chats/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chatId: currentChatId,
-          message: message
-        })
-      });
+        console.log("Response status:", response.status);
 
-      console.log("Response status:", response.status);
+        if (!response.ok) {
+          console.error("API error:", response.status);
+          fetchChats();
+          return;
+        }
 
-      if (!response.ok) {
-        console.error("API error:", response.status);
-        // Still update sidebar even if AI response fails
+        const data = await response.json();
+        console.log("API response:", data);
+
+        // After AI response, reload messages from backend to avoid duplicates
+        if (data.chat && data.chat.messages) {
+          setMessages(data.chat.messages);
+        } else if (data.message) {
+          setMessages(prev => [...prev, { role: "assistant", content: data.message }]);
+        }
         fetchChats();
-        return;
       }
-
-      const data = await response.json();
-      console.log("API response:", data);
-      
-      if (data.message) {
-        // Add AI response
-        setMessages(prev => [...prev, { role: "assistant", content: data.message }]);
-      }
-      
-      // Refresh chats list
-      fetchChats();
     } catch (error) {
       console.error("Error sending message:", error);
-      // Refresh sidebar even on error
+      fetchChats();
       fetchChats();
     } finally {
       setLoading(false);
