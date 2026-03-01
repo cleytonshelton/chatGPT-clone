@@ -14,6 +14,7 @@ paginate: true
 ## Week 7 Goals
 
 **Progress**: 3/4 (75%)
+**Requirements**: 9/10 (90%)
 **Total LoC**: 1200
 
 ---
