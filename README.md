@@ -5,6 +5,50 @@
 
 ---
 
+## Running the App Locally
+
+### Prerequisites
+- Node.js 18+
+- npm
+
+### Install Dependencies
+Run these commands once:
+
+```bash
+npm install
+npm install --prefix client
+npm install --prefix server
+```
+
+### Run Client + Server Together (One Terminal)
+From the project root:
+
+```bash
+npm run dev
+```
+
+This starts:
+- server on `http://localhost:5000`
+- client on `http://localhost:3000`
+
+### Run Separately (Two Terminals)
+Terminal 1 (server):
+
+```bash
+npm run server
+```
+
+Terminal 2 (client):
+
+```bash
+npm run client
+```
+
+### Troubleshooting
+If you see `Something is already running on port 3000`, stop the process using that port and re-run `npm run dev`.
+
+---
+
 ## 1. Project Overview
 **DialogLab** is a full-stack web application designed to explore how users interact with AI when conversations are treated as **structured workspaces rather than simple chat logs**. Instead of focusing on free-form chatting alone, this application emphasizes **context control, conversation analysis, and interaction feedback**.
 
@@ -21,7 +65,7 @@ This project addresses that gap by creating a conversational platform where **co
 
 ## 3. Core Features and Deliverables
 
-### Phase 1 – Foundation & Communication
+### Sprint 1 – Foundation & Communication
 - Real-time message exchange using WebSockets
 - AI response generation via a secure backend API proxy
 - Client-side persistence of conversations using IndexedDB
@@ -29,7 +73,7 @@ This project addresses that gap by creating a conversational platform where **co
 - Message metadata tracking (time, length, role)
 - Connection status indicators (connected / reconnecting / offline)
 
-### Phase 2 – Interaction Intelligence
+### Sprint 2 – Interaction Intelligence
 - AI-assisted conversation labeling based on detected topic
 - Inline message evaluation (helpful / unclear flags)
 - Keyword-based message highlighting
