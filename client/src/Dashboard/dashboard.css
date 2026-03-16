@@ -37,6 +37,7 @@
 
 .sidebar_container {
     width: 260px;
+    flex: 0 0 260px;
     height: 100%;
     background-color: var(--bg-secondary);
     display: flex;
@@ -48,6 +49,7 @@
 
 .sidebar_container.sidebar_closed {
     width: 0;
+    flex: 0 0 0;
     border-right: none;
     padding: 0;
     overflow: hidden;
@@ -202,6 +204,7 @@
 
 .chat_container {
     flex-grow: 1;
+    min-width: 0;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -211,24 +214,40 @@
 
 .sidebar_toggle_button {
     position: absolute;
-    top: 16px;
-    left: 16px;
-    background: transparent;
-    border: none;
+    top: 14px;
+    left: 14px;
+    width: 40px;
+    height: 40px;
+    background-color: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+    border: 1px solid var(--border-color);
     color: var(--text-secondary);
     cursor: pointer;
-    padding: 8px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
-    transition: all 0.2s;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    transition: all 0.2s ease;
     z-index: 100;
 }
 
 .sidebar_toggle_button:hover {
     background-color: var(--hover-bg);
     color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.sidebar_toggle_button:active {
+    transform: translateY(0);
+}
+
+.chat_container.sidebar_collapsed .chat_messages_container {
+    padding-top: 72px;
+}
+
+.chat_container.sidebar_collapsed .chat_gpt_logo_container {
+    padding-top: 56px;
 }
 
 .chat_messages_container {
@@ -469,12 +488,22 @@
     padding: 0;
     margin: 0;
     word-wrap: break-word;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     line-height: 1.5;
     color: var(--text-primary);
     font-size: 15px;
 }
 
-.message_copy_button {
+.message_actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.message_action_button {
     background: transparent;
     border: none;
     color: var(--text-secondary);
@@ -485,16 +514,14 @@
     justify-content: center;
     border-radius: 4px;
     transition: all 0.2s;
-    flex-shrink: 0;
-    margin-top: 2px;
 }
 
-.message_copy_button:hover {
+.message_action_button:hover {
     background-color: var(--hover-bg);
     color: var(--text-primary);
 }
 
-.message_copy_button.copied {
+.message_action_button.copied {
     color: #10b981;
 }
 

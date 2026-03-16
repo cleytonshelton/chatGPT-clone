@@ -8,6 +8,15 @@ const messageSchema = new mongoose.Schema({
 const chatSchema = new mongoose.Schema({
   title: String,
   messages: [messageSchema],
+  parentChatId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Chat",
+    default: null,
+  },
+  branchedFromMessageIndex: {
+    type: Number,
+    default: null,
+  },
 }, { timestamps: true });
 
 let ChatModel = null;

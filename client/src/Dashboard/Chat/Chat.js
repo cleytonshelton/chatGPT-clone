@@ -12,9 +12,9 @@ const ChatLogo = () => {
   );
 };
 
-const Chat = ({ messages, onSendMessage, loading, sidebarOpen, onToggleSidebar }) => {
+const Chat = ({ messages, onSendMessage, onForkConversation, loading, sidebarOpen, onToggleSidebar }) => {
   return (
-    <div className="chat_container">
+    <div className={`chat_container ${!sidebarOpen ? "sidebar_collapsed" : ""}`}>
       {!sidebarOpen && (
         <button className="sidebar_toggle_button" onClick={onToggleSidebar} title="Open sidebar">
           <BsList size={24} />
@@ -22,7 +22,7 @@ const Chat = ({ messages, onSendMessage, loading, sidebarOpen, onToggleSidebar }
       )}
       {messages.length === 0 && <ChatLogo />}
       <div className="chat_selected_container">
-        <Messages messages={messages} loading={loading} />
+        <Messages messages={messages} loading={loading} onForkConversation={onForkConversation} />
         <NewMessageInput onSendMessage={onSendMessage} loading={loading} />
       </div>
     </div>

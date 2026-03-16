@@ -163,11 +163,67 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Create a branched chat from an existing chat's assistant message
+router.post("/:id/branch", async (req, res) => {
+  try {
+    const Chat = getChat();
+    const sourceChat = await Chat.findById(req.params.id);
+
+    if (!sourceChat) {
+      return res.status(404).json({ error: "Source chat not found" });
+    }
+
+    const { messageIndex } = req.body || {};
+
+    const resolvedIndex = Number.isInteger(messageIndex)
+      ? messageIndex
+      : [...sourceChat.messages]
+          .map((message, index) => ({ message, index }))
+          .filter(({ message }) => message.role === "assistant")
+          .pop()?.index;
+
+    if (!Number.isInteger(resolvedIndex)) {
+      return res.status(400).json({
+        error: "Cannot branch this conversation because it has no assistant response yet",
+      });
+    }
+
+    if (resolvedIndex < 0 || resolvedIndex >= sourceChat.messages.length) {
+      return res.status(400).json({ error: "Invalid message index" });
+    }
+
+    const branchPoint = sourceChat.messages[resolvedIndex];
+    if (branchPoint.role !== "assistant") {
+      return res.status(400).json({
+        error: "Conversation branching must start from an assistant message",
+      });
+    }
+
+    const branchMessages = sourceChat.messages
+      .slice(0, resolvedIndex + 1)
+      .map((message) => ({ role: message.role, content: message.content }));
+
+    const baseTitle = (branchPoint.content || "").trim() || "New Branch";
+    const title = `Branch: ${baseTitle.slice(0, 24)}${baseTitle.length > 24 ? "..." : ""}`;
+
+    const branchedChat = await Chat.create({
+      title,
+      messages: branchMessages,
+      parentChatId: sourceChat._id,
+      branchedFromMessageIndex: resolvedIndex,
+    });
+
+    return res.status(201).json(branchedChat);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all chats
 router.get("/", async (req, res) => {
   try {
     const Chat = getChat();
-    const chats = await Chat.find();
+    const chats = await Chat.find().sort({ updatedAt: -1 });
     res.json(chats);
   } catch (error) {
     res.status(500).json({ error: error.message });
