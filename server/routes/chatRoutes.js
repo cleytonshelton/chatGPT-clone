@@ -5,6 +5,17 @@ const fetch = global.fetch || require('node-fetch'); // for HF or other HTTP API
 
 const router = express.Router();
 
+function normalizeChatTitle(title) {
+  const fallback = "New Chat";
+  const cleaned = (title || "").replace(/\s+/g, " ").trim();
+  return cleaned || fallback;
+}
+
+function truncateTitle(title, maxLength = 70) {
+  if (title.length <= maxLength) return title;
+  return `${title.slice(0, maxLength - 3)}...`;
+}
+
 // select AI backend via environment variable. "openai", "hf" (Hugging Face), "ollama" or "demo"
 // demo is a built-in no‑setup provider that returns a canned reply.
 const provider = process.env.AI_PROVIDER || "demo";
@@ -203,8 +214,11 @@ router.post("/:id/branch", async (req, res) => {
       .slice(0, resolvedIndex + 1)
       .map((message) => ({ role: message.role, content: message.content }));
 
-    const baseTitle = (branchPoint.content || "").trim() || "New Branch";
-    const title = `Branch: ${baseTitle.slice(0, 24)}${baseTitle.length > 24 ? "..." : ""}`;
+    const siblingBranchCount = await Chat.countDocuments({
+      parentChatId: sourceChat._id,
+    });
+    const sourceTitle = normalizeChatTitle(sourceChat.title);
+    const title = truncateTitle(`${sourceTitle} - Branch ${siblingBranchCount + 1}`);
 
     const branchedChat = await Chat.create({
       title,
