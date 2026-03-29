@@ -61,6 +61,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 8px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar_logo {
@@ -83,6 +84,37 @@
     transition: all 0.2s;
 }
 
+.sidebar_header_actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sidebar_icon_button {
+    width: 34px;
+    height: 34px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sidebar_icon_button:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.sidebar_icon_button.active {
+    background-color: var(--hover-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
 .sidebar_close_button:hover {
     background-color: var(--hover-bg);
     color: var(--text-primary);
@@ -91,6 +123,77 @@
 .sidebar_conversations {
     flex: 1;
     overflow-y: auto;
+}
+
+.sidebar_search_container {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateY(-6px);
+    transition: max-height 0.25s ease, opacity 0.25s ease, transform 0.25s ease;
+}
+
+.sidebar_search_container.open {
+    max-height: 70px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.sidebar_search_input_wrapper {
+    margin: 8px 12px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    background-color: var(--input-bg);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sidebar_search_input_wrapper:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.sidebar_search_leading_icon {
+    color: var(--text-secondary);
+    margin-left: 10px;
+    margin-right: 8px;
+}
+
+.sidebar_search_input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: transparent;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    padding: 8px 2px 8px 0;
+}
+
+.sidebar_search_input::placeholder {
+    color: var(--text-secondary);
+}
+
+.sidebar_search_clear {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    margin-right: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.sidebar_search_clear:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
 }
 
 .sidebar_conversations::-webkit-scrollbar {
@@ -125,6 +228,19 @@
     background-color: transparent;
 }
 
+.chat_history_item.search_result {
+    height: auto;
+    min-height: 56px;
+    align-items: flex-start;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.chat_history_main {
+    min-width: 0;
+    flex: 1;
+}
+
 .chat_history_item:hover {
     background-color: var(--hover-bg);
     color: var(--text-primary);
@@ -142,10 +258,23 @@
     text-overflow: ellipsis;
 }
 
+.chat_history_match_preview {
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.35;
+    overflow: hidden;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
 .chat_history_actions {
     display: flex;
     gap: 6px;
     margin-left: 8px;
+    align-self: flex-start;
 }
 
 .chat_action_btn {
@@ -523,6 +652,13 @@
 
 .message_action_button.copied {
     color: #10b981;
+}
+
+.search_highlight_mark {
+    background: color-mix(in srgb, #facc15 55%, transparent);
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 3px;
 }
 
 .overlay {

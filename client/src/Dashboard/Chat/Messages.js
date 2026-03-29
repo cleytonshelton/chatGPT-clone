@@ -1,7 +1,7 @@
 import React from "react";
 import Message from "./Message";
 
-const Messages = ({ messages = [], loading, onForkConversation }) => {
+const Messages = ({ messages = [], loading, onForkConversation, searchTerm }) => {
   return (
     <div className="chat_messages_container">
       {messages.length === 0 ? (
@@ -17,6 +17,7 @@ const Messages = ({ messages = [], loading, onForkConversation }) => {
               messageIndex={index}
               aiMessage={msg.role === "assistant"}
               onForkConversation={onForkConversation}
+              searchTerm={searchTerm}
               animate={msg.role === "assistant" && index === messages.length - 1 && loading}
             />
           ))}

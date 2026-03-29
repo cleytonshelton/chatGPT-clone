@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [chats, setChats] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch saved chats on mount
   useEffect(() => {
@@ -163,6 +164,8 @@ const Dashboard = () => {
         onDeleteChat={handleDeleteChat}
         onRenameChat={handleRenameChat}
         currentChatId={chatId}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
@@ -170,6 +173,7 @@ const Dashboard = () => {
         messages={messages}
         onSendMessage={handleSendMessage}
         onForkConversation={handleForkConversation}
+        searchTerm={searchTerm}
         loading={loading}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
