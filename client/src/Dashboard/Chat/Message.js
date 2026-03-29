@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { GrUser } from "react-icons/gr";
 import { FcMindMap } from "react-icons/fc";
 import { BsClipboard, BsCheckCircle } from "react-icons/bs";
+import { CgGitFork } from "react-icons/cg";
 
 const SlowText = (props) => {
   const { speed, text } = props;
@@ -25,7 +26,7 @@ const SlowText = (props) => {
   return <span>{placeholder}</span>;
 };
 
-const Message = ({ content, aiMessage, animate }) => {
+const Message = ({ content, aiMessage, animate, messageIndex, onForkConversation }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -53,17 +54,28 @@ const Message = ({ content, aiMessage, animate }) => {
           {animate ? <SlowText speed={20} text={content} /> : content}
         </p>
         {isHovered && (
-          <button
-            className={`message_copy_button ${isCopied ? 'copied' : ''}`}
-            onClick={handleCopy}
-            title={isCopied ? "Copied!" : "Copy message"}
-          >
-            {isCopied ? (
-              <BsCheckCircle size={16} />
-            ) : (
-              <BsClipboard size={16} />
+          <div className="message_actions">
+            {aiMessage && (
+              <button
+                className="message_action_button"
+                onClick={() => onForkConversation?.(messageIndex)}
+                title="Fork conversation from this answer"
+              >
+                <CgGitFork size={16} />
+              </button>
             )}
-          </button>
+            <button
+              className={`message_action_button ${isCopied ? 'copied' : ''}`}
+              onClick={handleCopy}
+              title={isCopied ? "Copied!" : "Copy message"}
+            >
+              {isCopied ? (
+                <BsCheckCircle size={16} />
+              ) : (
+                <BsClipboard size={16} />
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>

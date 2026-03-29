@@ -55,6 +55,19 @@ const Sidebar = ({
             <div
               key={chat._id}
               className={`chat_history_item ${currentChatId === chat._id ? 'active' : ''}`}
+              onClick={() => {
+                if (editingId !== chat._id) {
+                  onSelectChat(chat);
+                }
+              }}
+              onKeyDown={(e) => {
+                if ((e.key === "Enter" || e.key === " ") && editingId !== chat._id) {
+                  e.preventDefault();
+                  onSelectChat(chat);
+                }
+              }}
+              role="button"
+              tabIndex={0}
               onMouseEnter={() => setHoverChatId(chat._id)}
               onMouseLeave={() => setHoverChatId(null)}
             >
@@ -75,7 +88,6 @@ const Sidebar = ({
                 <>
                   <div 
                     className="chat_history_title"
-                    onClick={() => onSelectChat(chat)}
                     title={chat.title}
                   >
                     {chat.title}
@@ -84,14 +96,20 @@ const Sidebar = ({
                     <div className="chat_history_actions">
                       <button
                         className="chat_action_btn"
-                        onClick={() => handleRenameStart(chat)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRenameStart(chat);
+                        }}
                         title="Rename"
                       >
                         <BsPencil size={14} />
                       </button>
                       <button
                         className="chat_action_btn delete"
-                        onClick={() => onDeleteChat(chat._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteChat(chat._id);
+                        }}
                         title="Delete"
                       >
                         <BsTrash size={14} />

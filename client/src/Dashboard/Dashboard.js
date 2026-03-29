@@ -96,18 +96,43 @@ const Dashboard = () => {
     setMessages([]);
   };
 
+  const handleForkConversation = async (messageIndex) => {
+    if (!chatId || !Number.isInteger(messageIndex)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/chats/${chatId}/branch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageIndex }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create branch: ${response.status}`);
+      }
+
+      const branchedChat = await response.json();
+      setChatId(branchedChat._id);
+      setMessages(branchedChat.messages || []);
+      fetchChats();
+    } catch (error) {
+      console.error("Error forking conversation:", error);
+    }
+  };
+
   const handleSelectChat = async (chat) => {
     setChatId(chat._id);
     setMessages(chat.messages);
   };
 
-  const handleDeleteChat = async (chatId) => {
+  const handleDeleteChat = async (chatToDeleteId) => {
     try {
-      await fetch(`http://localhost:5000/api/chats/${chatId}`, {
+      await fetch(`http://localhost:5000/api/chats/${chatToDeleteId}`, {
         method: "DELETE",
       });
-      setChats(prev => prev.filter(c => c._id !== chatId));
-      if (chatId === chatId) {
+      setChats(prev => prev.filter(c => c._id !== chatToDeleteId));
+      if (chatToDeleteId === chatId) {
         handleNewChat();
       }
     } catch (error) {
@@ -141,7 +166,14 @@ const Dashboard = () => {
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
-      <Chat messages={messages} onSendMessage={handleSendMessage} loading={loading} sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <Chat
+        messages={messages}
+        onSendMessage={handleSendMessage}
+        onForkConversation={handleForkConversation}
+        loading={loading}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      />
     </div>
   );
 };
