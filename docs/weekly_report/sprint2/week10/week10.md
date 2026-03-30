@@ -11,7 +11,7 @@ paginate: true
 
 ---
 
-## Week 7 Goals
+## Week 10 Goals
 
 **Progress**: 2/5 (40%)
 **Requirements**: 6/15 (40%)

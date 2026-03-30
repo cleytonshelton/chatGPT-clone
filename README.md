@@ -49,6 +49,29 @@ If you see `Something is already running on port 3000`, stop the process using t
 
 ---
 
+## Keyboard Shortcuts
+
+Use `Ctrl` on Windows/Linux or `Cmd` on macOS.
+
+### Global Actions
+- `Ctrl/Cmd + Shift + N`: Start a new chat
+- `Ctrl/Cmd + Shift + F`: Fork from the most recent assistant response
+- `Ctrl/Cmd + Shift + E`: Export current chat as Markdown
+- `Ctrl/Cmd + Shift + J`: Export current chat as JSON
+- `Ctrl/Cmd + Shift + R`: Rename current chat
+- `Ctrl/Cmd + Shift + B`: Toggle sidebar
+- `Ctrl/Cmd + Shift + L`: Toggle light/dark theme
+
+### Sidebar Search
+- `Ctrl/Cmd + K`: Open conversation search
+
+### Notes
+- Export, fork, and rename shortcuts require an active chat.
+- Shortcuts are disabled while typing in input fields to avoid interrupting message entry.
+- `Ctrl/Cmd + Shift + T` is usually reserved by browsers to reopen tabs, so use `Ctrl/Cmd + Shift + L` for theme toggle.
+
+---
+
 ## 1. Project Overview
 **DialogLab** is a full-stack web application designed to explore how users interact with AI when conversations are treated as **structured workspaces rather than simple chat logs**. Instead of focusing on free-form chatting alone, this application emphasizes **context control, conversation analysis, and interaction feedback**.
 

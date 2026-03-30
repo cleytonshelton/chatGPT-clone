@@ -226,6 +226,7 @@
     color: var(--text-secondary);
     font-size: 14px;
     background-color: transparent;
+    position: relative;
 }
 
 .chat_history_item.search_result {
@@ -270,33 +271,69 @@
     -webkit-box-orient: vertical;
 }
 
-.chat_history_actions {
-    display: flex;
-    gap: 6px;
+.chat_menu_container {
+    position: relative;
     margin-left: 8px;
     align-self: flex-start;
 }
 
-.chat_action_btn {
-    background: transparent;
+.chat_menu_button {
+    width: 26px;
+    height: 26px;
     border: none;
+    background: transparent;
     color: var(--text-secondary);
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
+    border-radius: 6px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    cursor: pointer;
     transition: all 0.2s;
 }
 
-.chat_action_btn:hover {
+.chat_menu_button:hover {
     background-color: var(--bg-tertiary);
     color: var(--text-primary);
 }
 
-.chat_action_btn.delete:hover {
-    color: #ef4444;
+.chat_menu_dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 170px;
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 30;
+}
+
+.chat_menu_item {
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    text-align: left;
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.chat_menu_item:hover {
+    background-color: var(--hover-bg);
+}
+
+.chat_menu_item.danger {
+    color: #dc2626;
+}
+
+.chat_menu_item.danger:hover {
+    background-color: rgba(220, 38, 38, 0.1);
 }
 
 .chat_rename_input {

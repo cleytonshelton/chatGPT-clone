@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import NewChatButton from "./NewChatButton";
 import { ThemeContext } from "../../ThemeContext";
-import { BsSun, BsMoon, BsTrash, BsPencil, BsChevronLeft, BsSearch, BsX } from "react-icons/bs";
+import { BsSun, BsMoon, BsChevronLeft, BsSearch, BsX, BsThreeDots } from "react-icons/bs";
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -65,6 +65,96 @@ const getChatMatchPreview = (chat, query = "") => {
   return snippet;
 };
 
+const sanitizeFilename = (value = "conversation") =>
+  String(value)
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase()
+    .slice(0, 60) || "conversation";
+
+const getObjectIdTimestamp = (id) => {
+  if (typeof id !== "string" || !/^[a-fA-F0-9]{24}$/.test(id)) {
+    return null;
+  }
+
+  const unixSeconds = parseInt(id.slice(0, 8), 16);
+  if (!Number.isFinite(unixSeconds)) {
+    return null;
+  }
+
+  return new Date(unixSeconds * 1000);
+};
+
+const resolveMessageTimestamp = (message, chatCreatedAt) => {
+  if (message?.createdAt) {
+    return new Date(message.createdAt);
+  }
+
+  const objectIdTimestamp = getObjectIdTimestamp(message?._id);
+  if (objectIdTimestamp) {
+    return objectIdTimestamp;
+  }
+
+  if (chatCreatedAt) {
+    return new Date(chatCreatedAt);
+  }
+
+  return null;
+};
+
+const toExportPayload = (chat) => ({
+  chatId: chat?._id,
+  title: chat?.title || "Conversation",
+  createdAt: chat?.createdAt || null,
+  updatedAt: chat?.updatedAt || null,
+  exportedAt: new Date().toISOString(),
+  messages: Array.isArray(chat?.messages)
+    ? chat.messages.map((message, index) => ({
+        index,
+        role: message?.role || "unknown",
+        content: message?.content || "",
+        timestamp: resolveMessageTimestamp(message, chat?.createdAt)?.toISOString() || null,
+      }))
+    : [],
+});
+
+const toMarkdownExport = (chat) => {
+  const payload = toExportPayload(chat);
+  const lines = [
+    `# ${payload.title}`,
+    "",
+    `- Chat ID: ${payload.chatId || "N/A"}`,
+    `- Exported At: ${payload.exportedAt}`,
+    "",
+    "## Messages",
+    "",
+  ];
+
+  payload.messages.forEach((message, index) => {
+    lines.push(`### ${index + 1}. ${message.role}`);
+    lines.push("");
+    lines.push(`- Timestamp: ${message.timestamp || "N/A"}`);
+    lines.push("");
+    lines.push(message.content || "");
+    lines.push("");
+  });
+
+  return lines.join("\n");
+};
+
+const downloadFile = ({ filename, content, type }) => {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 const Sidebar = ({ 
   onNewChat, 
   chats = [],
@@ -80,7 +170,7 @@ const Sidebar = ({
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
-  const [hoverChatId, setHoverChatId] = useState(null);
+  const [activeMenuChatId, setActiveMenuChatId] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef(null);
 
@@ -119,6 +209,20 @@ const Sidebar = ({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isSearchOpen, onSearchChange]);
+
+  useEffect(() => {
+    const handleClickOutsideMenu = (event) => {
+      if (!event.target.closest(".chat_menu_container")) {
+        setActiveMenuChatId(null);
+      }
+    };
+
+    window.addEventListener("mousedown", handleClickOutsideMenu);
+
+    return () => {
+      window.removeEventListener("mousedown", handleClickOutsideMenu);
+    };
+  }, []);
 
   const handleRenameStart = (chat) => {
     setEditingId(chat._id);
@@ -163,6 +267,36 @@ const Sidebar = ({
   const handleSearchClose = () => {
     onSearchChange?.("");
     setIsSearchOpen(false);
+  };
+
+  const handleToggleChatMenu = (chatId) => {
+    setActiveMenuChatId((previousMenuChatId) =>
+      previousMenuChatId === chatId ? null : chatId
+    );
+  };
+
+  const handleExportChat = (chat, format) => {
+    if (!chat?._id) {
+      return;
+    }
+
+    const dateSuffix = new Date().toISOString().slice(0, 10);
+    const baseName = `${sanitizeFilename(chat.title)}-${dateSuffix}`;
+
+    if (format === "json") {
+      downloadFile({
+        filename: `${baseName}.json`,
+        content: JSON.stringify(toExportPayload(chat), null, 2),
+        type: "application/json;charset=utf-8",
+      });
+      return;
+    }
+
+    downloadFile({
+      filename: `${baseName}.md`,
+      content: toMarkdownExport(chat),
+      type: "text/markdown;charset=utf-8",
+    });
   };
 
   return (
@@ -226,19 +360,19 @@ const Sidebar = ({
                 className={`chat_history_item ${currentChatId === chat._id ? 'active' : ''} ${normalizedSearchTerm ? 'search_result' : ''}`}
                 onClick={() => {
                   if (editingId !== chat._id) {
+                    setActiveMenuChatId(null);
                     onSelectChat(chat);
                   }
                 }}
                 onKeyDown={(e) => {
                   if ((e.key === "Enter" || e.key === " ") && editingId !== chat._id) {
                     e.preventDefault();
+                    setActiveMenuChatId(null);
                     onSelectChat(chat);
                   }
                 }}
                 role="button"
                 tabIndex={0}
-                onMouseEnter={() => setHoverChatId(chat._id)}
-                onMouseLeave={() => setHoverChatId(null)}
               >
                 {editingId === chat._id ? (
                   <input
@@ -268,30 +402,68 @@ const Sidebar = ({
                         </div>
                       )}
                     </div>
-                    {hoverChatId === chat._id && (
-                      <div className="chat_history_actions">
-                        <button
-                          className="chat_action_btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRenameStart(chat);
-                          }}
-                          title="Rename"
+                    <div className="chat_menu_container">
+                      <button
+                        className="chat_menu_button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleChatMenu(chat._id);
+                        }}
+                        title="Conversation actions"
+                        aria-label="Conversation actions"
+                        aria-expanded={activeMenuChatId === chat._id}
+                      >
+                        <BsThreeDots size={16} />
+                      </button>
+                      {activeMenuChatId === chat._id && (
+                        <div
+                          className="chat_menu_dropdown"
+                          role="menu"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <BsPencil size={14} />
-                        </button>
-                        <button
-                          className="chat_action_btn delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteChat(chat._id);
-                          }}
-                          title="Delete"
-                        >
-                          <BsTrash size={14} />
-                        </button>
-                      </div>
-                    )}
+                          <button
+                            className="chat_menu_item"
+                            onClick={() => {
+                              handleExportChat(chat, "md");
+                              setActiveMenuChatId(null);
+                            }}
+                            title="Export as Markdown"
+                          >
+                            Export as Markdown
+                          </button>
+                          <button
+                            className="chat_menu_item"
+                            onClick={() => {
+                              handleExportChat(chat, "json");
+                              setActiveMenuChatId(null);
+                            }}
+                            title="Export as JSON"
+                          >
+                            Export as JSON
+                          </button>
+                          <button
+                            className="chat_menu_item"
+                            onClick={() => {
+                              handleRenameStart(chat);
+                              setActiveMenuChatId(null);
+                            }}
+                            title="Rename conversation"
+                          >
+                            Edit title
+                          </button>
+                          <button
+                            className="chat_menu_item danger"
+                            onClick={() => {
+                              onDeleteChat(chat._id);
+                              setActiveMenuChatId(null);
+                            }}
+                            title="Delete conversation"
+                          >
+                            Delete conversation
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </>
                 )}
               </div>
