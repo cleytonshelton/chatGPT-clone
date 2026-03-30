@@ -4,6 +4,28 @@ import { FcMindMap } from "react-icons/fc";
 import { BsClipboard, BsCheckCircle } from "react-icons/bs";
 import { CgGitFork } from "react-icons/cg";
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const renderHighlightedText = (text = "", query = "") => {
+  if (!query.trim()) {
+    return text;
+  }
+
+  const regex = new RegExp(`(${escapeRegExp(query.trim())})`, "ig");
+  const parts = String(text).split(regex);
+  const normalizedQuery = query.trim().toLowerCase();
+
+  return parts.map((part, index) =>
+    part.toLowerCase() === normalizedQuery ? (
+      <mark key={`${part}-${index}`} className="search_highlight_mark">
+        {part}
+      </mark>
+    ) : (
+      <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>
+    )
+  );
+};
+
 const SlowText = (props) => {
   const { speed, text } = props;
 
@@ -26,9 +48,10 @@ const SlowText = (props) => {
   return <span>{placeholder}</span>;
 };
 
-const Message = ({ content, aiMessage, animate, messageIndex, onForkConversation }) => {
+const Message = ({ content, aiMessage, animate, messageIndex, onForkConversation, searchTerm = "" }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const hasSearchTerm = searchTerm.trim().length > 0;
 
   const handleCopy = async () => {
     try {
@@ -51,7 +74,9 @@ const Message = ({ content, aiMessage, animate, messageIndex, onForkConversation
       </div>
       <div className="message_content_wrapper">
         <p className="message_text">
-          {animate ? <SlowText speed={20} text={content} /> : content}
+          {animate && !hasSearchTerm
+            ? <SlowText speed={20} text={content} />
+            : renderHighlightedText(content, searchTerm)}
         </p>
         {isHovered && (
           <div className="message_actions">
