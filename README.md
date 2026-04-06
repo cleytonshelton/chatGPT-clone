@@ -1,7 +1,7 @@
 # ASE285_Individual_Project
 
 ## Project Title
-**DialogLab** – A Context-Aware AI Conversation Workspace
+**ChatGPT Clone**
 
 ---
 
@@ -50,9 +50,7 @@ If you see `Something is already running on port 3000`, stop the process using t
 ---
 
 ## 1. Project Overview
-**DialogLab** is a full-stack web application designed to explore how users interact with AI when conversations are treated as **structured workspaces rather than simple chat logs**. Instead of focusing on free-form chatting alone, this application emphasizes **context control, conversation analysis, and interaction feedback**.
-
-The system is implemented using **React**, **Node.js with Express**, and **WebSocket-based messaging**, with AI responses powered by the OpenAI API. The project’s primary goal is to deepen understanding of **state management, real-time systems, and client-server coordination** in modern web applications.
+This project is a full-stack ChatGPT clone that replicates the core functionality of OpenAI's ChatGPT interface. Users can create and manage multiple conversations, send messages to the Ollama AI, and receive AI-generated responses in real time. Conversations are stored persistently so they survive page reloads, and users can delete individual chats or clear all history. The app features a sidebar for navigating between conversations and a clean chat interface similar to ChatGPT's, built with plain JavaScript on the frontend and Node.js with Express on the backend.
 
 ---
 
@@ -102,7 +100,7 @@ This project addresses that gap by creating a conversational platform where **co
 ### Architecture Overview
 The application follows a modular client-server design:
 
-- **Frontend (React)**
+- **Frontend (JavaScript)**
   - Manages conversation state, rendering, and user controls
   - Stores persistent data locally using IndexedDB
 
