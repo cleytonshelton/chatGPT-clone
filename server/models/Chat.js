@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const messageSchema = new mongoose.Schema({
   role: String,      // "user" or "assistant"
   content: String,
-});
+}, { timestamps: true });
 
 const chatSchema = new mongoose.Schema({
   title: String,

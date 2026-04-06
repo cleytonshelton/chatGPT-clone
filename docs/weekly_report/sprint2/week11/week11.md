@@ -11,7 +11,7 @@ paginate: true
 
 ---
 
-## Week 7 Goals
+## Week 11 Goals
 
 **Progress**: 3/5 (60%)
 **Requirements**: 9/15 (60%)
