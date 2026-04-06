@@ -16,6 +16,87 @@ function truncateTitle(title, maxLength = 70) {
   return `${title.slice(0, maxLength - 3)}...`;
 }
 
+const TITLE_STOP_WORDS = new Set([
+  "the", "and", "for", "with", "that", "this", "from", "you", "your", "are",
+  "was", "were", "have", "has", "had", "but", "not", "about", "into", "can",
+  "will", "just", "please", "help", "how", "what", "why", "when", "where",
+  "who", "which", "is", "am", "do", "does", "did", "a", "an",
+]);
+
+function toTitleCase(word = "") {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function phraseToTitle(value = "") {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => toTitleCase(word))
+    .join(" ");
+}
+
+function cleanPrompt(message = "") {
+  return String(message)
+    .replace(/[?!.]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function cleanSubject(value = "") {
+  return String(value)
+    .replace(/^(is|are|was|were)\s+/i, "")
+    .replace(/^(a|an|the)\s+/i, "")
+    .replace(/\s+(is|are|was|were)$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getQuestionStyleTitle(message = "") {
+  const prompt = cleanPrompt(message);
+  const lowerPrompt = prompt.toLowerCase();
+
+  const personMatch = lowerPrompt.match(/^(who\s+(is|was)\s+)(.+)$/i);
+  if (personMatch) {
+    const subject = cleanSubject(prompt.slice(personMatch[1].length));
+    return subject ? phraseToTitle(subject) : "";
+  }
+
+  const heightMatch = lowerPrompt.match(/^how\s+tall\s+(.+)$/i);
+  if (heightMatch) {
+    const subject = cleanSubject(prompt.slice("how tall".length));
+    return subject ? `${phraseToTitle(subject)} Height` : "";
+  }
+
+  return "";
+}
+
+function buildKeywordTitle(message = "") {
+  const fallback = "New Chat";
+  const intentTitle = getQuestionStyleTitle(message);
+  if (intentTitle) {
+    return intentTitle;
+  }
+
+  const terms = String(message)
+    .split(/\s+/)
+    .map((term) => term.trim())
+    .filter(Boolean)
+    .map((term) => term.replace(/^[^a-z0-9(]+|[^a-z0-9)+\-*/=%^().:]+$/gi, ""))
+    .filter((term) => /[a-z0-9]/i.test(term));
+
+  const filteredWords = terms.filter(
+    (term) => term.length > 2 && !TITLE_STOP_WORDS.has(term.toLowerCase())
+  );
+  const sourceWords = filteredWords.length ? filteredWords : terms.filter((term) => term.length > 1);
+
+  if (!sourceWords.length) {
+    return fallback;
+  }
+
+  const uniqueWords = [...new Set(sourceWords)].slice(0, 4);
+  return truncateTitle(uniqueWords.map(toTitleCase).join(" "), 60);
+}
+
 // select AI backend via environment variable. "openai", "hf" (Hugging Face), "ollama" or "demo"
 // demo is a built-in no‑setup provider that returns a canned reply.
 const provider = process.env.AI_PROVIDER || "demo";
@@ -79,7 +160,7 @@ router.post("/message", async (req, res) => {
     
     if (!chat) {
       chat = await Chat.create({
-        title: message.slice(0, 30) + (message.length > 30 ? "..." : ""),
+        title: buildKeywordTitle(message),
         messages: [],
       });
     }
@@ -167,7 +248,18 @@ router.post("/message", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const Chat = getChat();
-    const newChat = await Chat.create(req.body);
+    const payload = { ...req.body };
+
+    if (payload.title) {
+      payload.title = normalizeChatTitle(payload.title);
+    } else {
+      const firstMessage = Array.isArray(payload.messages)
+        ? payload.messages.find((message) => message?.content)?.content
+        : "";
+      payload.title = buildKeywordTitle(firstMessage);
+    }
+
+    const newChat = await Chat.create(payload);
     res.status(201).json(newChat);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -210,9 +302,10 @@ router.post("/:id/branch", async (req, res) => {
       });
     }
 
-    const branchMessages = sourceChat.messages
-      .slice(0, resolvedIndex + 1)
-      .map((message) => ({ role: message.role, content: message.content }));
+    const branchMessages = [{
+      role: branchPoint.role,
+      content: branchPoint.content,
+    }];
 
     const siblingBranchCount = await Chat.countDocuments({
       parentChatId: sourceChat._id,
