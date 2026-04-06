@@ -149,7 +149,7 @@ router.post("/message", async (req, res) => {
     console.log("Using provider:", provider);
     console.log("Chat type:", typeof Chat, "Chat.create:", typeof Chat.create);
     
-    const { chatId, message } = req.body;
+    const { chatId, message, replaceFromIndex } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: "Message is required" });
@@ -163,6 +163,11 @@ router.post("/message", async (req, res) => {
         title: buildKeywordTitle(message),
         messages: [],
       });
+    }
+
+    // If editing a message, truncate history from that index
+    if (Number.isInteger(replaceFromIndex) && replaceFromIndex >= 0) {
+      chat.messages = chat.messages.slice(0, replaceFromIndex);
     }
 
     // Add user message
@@ -362,6 +367,23 @@ router.put("/:id", async (req, res) => {
     );
     
     if (!chat) return res.status(404).json({ error: "Chat not found" });
+    res.json(chat);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle pin status
+router.put("/:id/pin", async (req, res) => {
+  try {
+    const Chat = getChat();
+    const current = await Chat.findById(req.params.id);
+    if (!current) return res.status(404).json({ error: "Chat not found" });
+    const chat = await Chat.findByIdAndUpdate(
+      req.params.id,
+      { $set: { pinned: !current.pinned } },
+      { new: true, timestamps: false }
+    );
     res.json(chat);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -229,6 +229,30 @@
     position: relative;
 }
 
+.chat_history_item.pinned {
+    border-left: 2px solid #3b82f6;
+    padding-left: 10px;
+}
+
+.sidebar_section_label {
+    padding: 8px 16px 2px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.chat_pin_icon {
+    display: inline;
+    margin-right: 5px;
+    color: #3b82f6;
+    flex-shrink: 0;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+}
+
 .chat_history_item.search_result {
     height: auto;
     min-height: 56px;
@@ -322,6 +346,10 @@
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
 }
 
 .chat_menu_item:hover {
@@ -689,6 +717,69 @@
 
 .message_action_button.copied {
     color: #10b981;
+}
+
+.message_edit_container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.message_edit_textarea {
+    width: 100%;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 15px;
+    line-height: 1.5;
+    resize: vertical;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.message_edit_textarea:focus {
+    border-color: #3b82f6;
+}
+
+.message_edit_actions {
+    display: flex;
+    gap: 8px;
+}
+
+.message_edit_save_button,
+.message_edit_cancel_button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.message_edit_save_button {
+    background-color: #3b82f6;
+    color: #fff;
+}
+
+.message_edit_save_button:hover {
+    background-color: #2563eb;
+}
+
+.message_edit_cancel_button {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.message_edit_cancel_button:hover {
+    background-color: var(--hover-bg);
 }
 
 .search_highlight_mark {
