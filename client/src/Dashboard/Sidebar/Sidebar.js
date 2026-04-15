@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import NewChatButton from "./NewChatButton";
 import { ThemeContext } from "../../ThemeContext";
-import { BsSun, BsMoon, BsChevronLeft, BsSearch, BsX, BsThreeDots, BsPin, BsPinFill } from "react-icons/bs";
+import { BsPalette, BsChevronLeft, BsChevronDown, BsSearch, BsX, BsThreeDots, BsPin, BsPinFill, BsCheck } from "react-icons/bs";
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -168,12 +168,15 @@ const Sidebar = ({
   sidebarOpen,
   onToggleSidebar
 }) => {
-  const { theme, toggleTheme } = useContext(ThemeContext);
+  const { theme, selectTheme, themes, themeLabels } = useContext(ThemeContext);
   const [editingId, setEditingId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [activeMenuChatId, setActiveMenuChatId] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
   const searchInputRef = useRef(null);
+  const themeDropdownRef = useRef(null);
+  const currentThemeLabel = themeLabels?.[theme] || theme;
 
   useEffect(() => {
     if (searchTerm.trim()) {
@@ -201,6 +204,7 @@ const Sidebar = ({
         event.preventDefault();
         onSearchChange?.("");
         setIsSearchOpen(false);
+        setIsThemeDropdownOpen(false);
       }
     };
 
@@ -222,6 +226,20 @@ const Sidebar = ({
 
     return () => {
       window.removeEventListener("mousedown", handleClickOutsideMenu);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutsideTheme = (event) => {
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(event.target)) {
+        setIsThemeDropdownOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", handleClickOutsideTheme);
+
+    return () => {
+      window.removeEventListener("mousedown", handleClickOutsideTheme);
     };
   }, []);
 
@@ -504,9 +522,45 @@ const Sidebar = ({
       </div>
 
       <div className="sidebar_footer">
-        <button className="theme_toggle_button" onClick={toggleTheme} title="Toggle theme">
-          {theme === "light" ? <BsMoon size={18} /> : <BsSun size={18} />}
-        </button>
+        <div className="theme_dropdown_container" ref={themeDropdownRef}>
+          <button
+            className={`theme_toggle_button ${isThemeDropdownOpen ? "open" : ""}`}
+            onClick={() => setIsThemeDropdownOpen((previous) => !previous)}
+            title={`Theme menu (current: ${currentThemeLabel})`}
+            aria-label="Theme menu"
+            aria-expanded={isThemeDropdownOpen}
+          >
+            <BsPalette size={18} />
+            <span className="theme_toggle_label">Theme: {currentThemeLabel}</span>
+            <BsChevronDown size={14} className={`theme_toggle_chevron ${isThemeDropdownOpen ? "open" : ""}`} />
+          </button>
+
+          {isThemeDropdownOpen && (
+            <div className="theme_dropdown_menu" role="menu">
+              {themes.map((themeKey) => {
+                const isActiveTheme = themeKey === theme;
+                const themeName = themeLabels?.[themeKey] || themeKey;
+
+                return (
+                  <button
+                    key={themeKey}
+                    className={`theme_dropdown_item ${isActiveTheme ? "active" : ""}`}
+                    onClick={() => {
+                      selectTheme(themeKey);
+                      setIsThemeDropdownOpen(false);
+                    }}
+                    title={`Use ${themeName} theme`}
+                    role="menuitem"
+                  >
+                    <span className={`theme_swatch theme_swatch_${themeKey}`} />
+                    <span className="theme_dropdown_item_label">{themeName}</span>
+                    {isActiveTheme && <BsCheck size={14} />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
