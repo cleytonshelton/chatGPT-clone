@@ -8,6 +8,10 @@ const messageSchema = new mongoose.Schema({
 const chatSchema = new mongoose.Schema({
   title: String,
   messages: [messageSchema],
+  pinned: {
+    type: Boolean,
+    default: false,
+  },
   parentChatId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Chat",

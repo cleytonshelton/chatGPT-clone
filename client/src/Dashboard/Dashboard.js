@@ -265,6 +265,39 @@ const Dashboard = () => {
     }
   };
 
+  const handleEditMessage = async (messageIndex, newContent) => {
+    if (!chatId) return;
+    try {
+      setLoading(true);
+      // Truncate messages up to (but not including) the edited message, then add the edited one
+      const truncated = messages.slice(0, messageIndex);
+      const updatedMessages = [...truncated, { role: "user", content: newContent }];
+      setMessages(updatedMessages);
+
+      // Persist truncated messages first, then send the edited message for a new AI response
+      const response = await fetch(`http://localhost:5000/api/chats/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatId, message: newContent, replaceFromIndex: messageIndex }),
+      });
+
+      if (!response.ok) {
+        console.error("Edit failed:", response.status);
+        return;
+      }
+
+      const data = await response.json();
+      if (data.chat && data.chat.messages) {
+        setMessages(data.chat.messages);
+      }
+      fetchChats();
+    } catch (error) {
+      console.error("Error editing message:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleNewChat = useCallback(() => {
     setChatId(null);
     setMessages([]);
@@ -311,6 +344,18 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error("Error deleting chat:", error);
+    }
+  };
+
+  const handlePinChat = async (chatIdToPin) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/chats/${chatIdToPin}/pin`, {
+        method: "PUT",
+      });
+      const updatedChat = await response.json();
+      setChats(prev => prev.map(c => c._id === chatIdToPin ? updatedChat : c));
+    } catch (error) {
+      console.error("Error pinning chat:", error);
     }
   };
 
@@ -496,6 +541,7 @@ const Dashboard = () => {
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}
         onRenameChat={handleRenameChat}
+        onPinChat={handlePinChat}
         currentChatId={chatId}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -506,6 +552,7 @@ const Dashboard = () => {
         messages={messages}
         onSendMessage={handleSendMessage}
         onForkConversation={handleForkConversation}
+        onEditMessage={handleEditMessage}
         searchTerm={searchTerm}
         loading={loading}
         sidebarOpen={sidebarOpen}

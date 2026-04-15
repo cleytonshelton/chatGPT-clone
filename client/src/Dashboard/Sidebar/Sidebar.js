@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import NewChatButton from "./NewChatButton";
 import { ThemeContext } from "../../ThemeContext";
-import { BsSun, BsMoon, BsChevronLeft, BsSearch, BsX, BsThreeDots } from "react-icons/bs";
+import { BsSun, BsMoon, BsChevronLeft, BsSearch, BsX, BsThreeDots, BsPin, BsPinFill } from "react-icons/bs";
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -161,6 +161,7 @@ const Sidebar = ({
   onSelectChat,
   onDeleteChat,
   onRenameChat,
+  onPinChat,
   currentChatId,
   searchTerm = "",
   onSearchChange,
@@ -242,7 +243,7 @@ const Sidebar = ({
   };
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-  const visibleChats = normalizedSearchTerm
+  const filteredChats = normalizedSearchTerm
     ? chats.filter((chat) => {
         const titleMatch = (chat.title || "").toLowerCase().includes(normalizedSearchTerm);
         const messageMatch = Array.isArray(chat.messages)
@@ -250,10 +251,13 @@ const Sidebar = ({
               (message?.content || "").toLowerCase().includes(normalizedSearchTerm)
             )
           : false;
-
         return titleMatch || messageMatch;
       })
     : chats;
+
+  const pinnedChats = filteredChats.filter((c) => c.pinned);
+  const unpinnedChats = filteredChats.filter((c) => !c.pinned);
+  const visibleChats = [...pinnedChats, ...unpinnedChats];
 
   const handleSearchToggle = () => {
     if (isSearchOpen && !searchTerm.trim()) {
@@ -349,15 +353,25 @@ const Sidebar = ({
       
       <div className="sidebar_conversations">
         {visibleChats.length > 0 ? (
-          visibleChats.map((chat) => {
+          visibleChats.map((chat, index) => {
             const matchPreview = normalizedSearchTerm
               ? getChatMatchPreview(chat, searchTerm)
               : "";
 
+            const isPinned = Boolean(chat.pinned);
+            const showPinnedLabel = !normalizedSearchTerm && isPinned && index === 0;
+            const showOtherLabel = !normalizedSearchTerm && !isPinned && pinnedChats.length > 0 && index === pinnedChats.length;
+
             return (
+              <React.Fragment key={chat._id}>
+                {showPinnedLabel && (
+                  <div className="sidebar_section_label">Pinned</div>
+                )}
+                {showOtherLabel && (
+                  <div className="sidebar_section_label">Conversations</div>
+                )}
               <div
-                key={chat._id}
-                className={`chat_history_item ${currentChatId === chat._id ? 'active' : ''} ${normalizedSearchTerm ? 'search_result' : ''}`}
+                className={`chat_history_item ${currentChatId === chat._id ? 'active' : ''} ${normalizedSearchTerm ? 'search_result' : ''} ${isPinned ? 'pinned' : ''}`}
                 onClick={() => {
                   if (editingId !== chat._id) {
                     setActiveMenuChatId(null);
@@ -394,6 +408,7 @@ const Sidebar = ({
                         className="chat_history_title"
                         title={chat.title}
                       >
+                        {isPinned && <BsPinFill size={11} className="chat_pin_icon" />}
                         {renderHighlightedText(chat.title, searchTerm)}
                       </div>
                       {normalizedSearchTerm && Boolean(matchPreview) && (
@@ -421,6 +436,17 @@ const Sidebar = ({
                           role="menu"
                           onClick={(e) => e.stopPropagation()}
                         >
+                          <button
+                            className="chat_menu_item"
+                            onClick={() => {
+                              onPinChat?.(chat._id);
+                              setActiveMenuChatId(null);
+                            }}
+                            title={isPinned ? "Unpin conversation" : "Pin conversation"}
+                          >
+                            {isPinned ? <BsPin size={13} /> : <BsPinFill size={13} />}
+                            {isPinned ? "Unpin" : "Pin"}
+                          </button>
                           <button
                             className="chat_menu_item"
                             onClick={() => {
@@ -467,6 +493,7 @@ const Sidebar = ({
                   </>
                 )}
               </div>
+              </React.Fragment>
             );
           })
         ) : (
