@@ -20,20 +20,25 @@ const NewMessageInput = ({ onSendMessage, loading }) => {
 
   return (
     <div className="new_message_input_container">
-      <input
-        className="new_message_input"
-        placeholder="Send a message ..."
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={loading}
-      />
-      <div
-        className="new_message_icon_container"
-        onClick={handleSend}
-        style={{ cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.5 : 1 }}
-      >
-        <BsSend color="grey" />
+      <div className="new_message_input_row">
+        <input
+          className="new_message_input"
+          placeholder="Send a message ..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={loading}
+        />
+        <button
+          type="button"
+          className="new_message_icon_container"
+          onClick={handleSend}
+          disabled={loading || !input.trim()}
+          title="Send message"
+          aria-label="Send message"
+        >
+          <BsSend />
+        </button>
       </div>
     </div>
   );
