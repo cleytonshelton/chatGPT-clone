@@ -1,126 +1,94 @@
 # ChatGPT Clone
 
-## Project Overview
+A full-stack ChatGPT-style app built for ASE285 with multi-chat workflows, conversation branching, search, export, and theme customization.
 
-This project is a full-stack ChatGPT-style application built as an individual ASE285 project. It gives users a structured way to manage AI conversations by supporting multiple chats, persistent storage, branching, search, export, and theme customization.
+[Live Demo](https://cleytonshelton.github.io/chatGPT-clone/) | [Project Board Docs](docs/PPP/ppp/ppp.md) | [Test Documentation](docs/tests)
 
-The README is aligned with the PPP documents and the current codebase, which uses React on the frontend, Express on the backend, and MongoDB with Mongoose for persistence.
+## Snapshot
 
-## Tech Stack
+| Category | Details |
+| --- | --- |
+| Frontend | React 18, React Icons, React Testing Library |
+| Backend | Node.js, Express 5 |
+| Database | MongoDB with Mongoose |
+| AI Providers | OpenAI, Hugging Face, Ollama, Demo mode |
+| Testing | Jest, React Testing Library, Supertest |
 
-- Frontend: React 18
-- Backend: Node.js and Express 5
-- Database: MongoDB
-- ODM: Mongoose
-- AI integration: OpenAI SDK with configurable provider support for OpenAI, Hugging Face, Ollama, or demo mode
-- Testing: Jest, React Testing Library, Supertest
+## Why This Project
 
-## PPP Features Reflected in This Project
+Most chat demos only handle a single thread. This project focuses on conversation management features that are useful in real workflows:
 
-### AI Response Generation
-- Sends user prompts from the React client to the Express API.
-- Uses the backend as a secure proxy to the configured AI provider.
-- Keeps API keys out of the frontend.
+- Multiple saved chats with pin, rename, and delete actions
+- Branching from any assistant message to explore alternatives
+- Search across conversation titles and message content
+- Export to Markdown and JSON with timestamps
+- Message editing with regenerated assistant responses
 
-### Conversation Persistence
-- Stores chats and messages in MongoDB.
-- Reloads saved conversations when the application starts.
-- Preserves message order and chat history for each conversation.
+## Feature Map
 
-### Multi-Conversation Management
-- Create a new chat.
-- Switch between existing chats.
-- Rename chats.
-- Delete chats.
-- Pin chats in the sidebar.
+### Conversation Management
+- Create, switch, rename, pin, and delete chats
+- Keep chat history in MongoDB for persistence
+- Sort and organize chats from the sidebar
 
-### Conversation Branching
-- Create a new conversation from an assistant response in an existing chat.
-- Track the parent chat relationship.
-- Record which message index the branch came from.
+### Branching and Editing
+- Fork a new chat from an assistant response
+- Track parent-child chat relationships
+- Edit older user messages and regenerate continuation
 
-### Conversation Search and Highlighting
-- Search through conversation titles and message content.
-- Highlight matched text in the sidebar results.
-- Show preview snippets for matching messages.
+### Search and Export
+- Search title and message text
+- Highlight query matches and show preview snippets
+- Export conversations as Markdown or JSON files
 
-### Exporting Conversations
-- Export a chat as Markdown.
-- Export a chat as JSON.
-- Include message order and timestamps in exported output.
-
-### Theme and Interface Customization
-- Toggle between light and dark mode.
-- Save theme preference in local storage.
-- Collapse and expand the sidebar.
-- Use keyboard shortcuts for common actions.
-
-### Message Editing and Regeneration
-- Edit an earlier user message.
-- Remove later messages from that point.
-- Generate a new assistant reply based on the edited input.
+### UX and Accessibility
+- Light/dark theme toggle with local persistence
+- Sidebar collapse/expand
+- Keyboard shortcuts for common actions
 
 ## Architecture
 
-### Frontend
-- React UI in [client/src/App.js](client/src/App.js) and [client/src/Dashboard/Dashboard.js](client/src/Dashboard/Dashboard.js)
-- Handles active chat state, exports, search, branching actions, and theme toggling
+```text
+client (React)
+	-> sends chat actions and prompts
+	-> renders sidebar, message stream, search, and exports
 
-### Backend
-- Express app in [server/app.js](server/app.js)
-- Chat routes in [server/routes/chatRoutes.js](server/routes/chatRoutes.js)
-- Supports chat creation, updates, branching, pinning, title edits, deletion, and AI message generation
+server (Express)
+	-> validates requests
+	-> routes provider calls (OpenAI/HF/Ollama/demo)
+	-> persists chats/messages via Mongoose
 
-### Database Layer
-- MongoDB connection starts in [server/index.js](server/index.js)
-- Mongoose schema is defined in [server/models/Chat.js](server/models/Chat.js)
+mongo (MongoDB)
+	-> stores chat documents with embedded messages
+```
+
+Core entry points:
+
+- Frontend shell: [client/src/App.js](client/src/App.js)
+- Frontend chat orchestration: [client/src/Dashboard/Dashboard.js](client/src/Dashboard/Dashboard.js)
+- API setup: [server/app.js](server/app.js)
+- Chat routes: [server/routes/chatRoutes.js](server/routes/chatRoutes.js)
+- Chat model: [server/models/Chat.js](server/models/Chat.js)
 
 ## Data Model
 
-The app uses a `Chat` document with embedded `messages`.
+Chat documents store ordered messages and branch metadata.
 
-### Chat
-- `title`: conversation name shown in the sidebar
-- `messages`: ordered array of embedded messages
-- `pinned`: boolean flag for keeping important chats at the top
-- `parentChatId`: reference to the original chat when a branch is created
-- `branchedFromMessageIndex`: message index used as the branch point
-- `createdAt` and `updatedAt`: automatic timestamps
+- title: Sidebar display name
+- messages: Array of user/assistant messages
+- pinned: Priority flag for sidebar ordering
+- parentChatId: Parent chat reference for branches
+- branchedFromMessageIndex: Source message index used to branch
+- createdAt and updatedAt: Automatic timestamps
 
-### Message
-- `role`: `user` or `assistant`
-- `content`: message text
-- `createdAt` and `updatedAt`: automatic timestamps
-
-This data model supports the PPP requirements by preserving persistent conversation history, enabling chat organization, and recording branch relationships between related chats.
-
-## Running the App Locally
+## Run Locally
 
 ### Prerequisites
-- Node.js 18 or newer
+- Node.js 18+
 - npm
-- A MongoDB instance
+- MongoDB instance
 
-### Environment Setup
-
-Create a `.env` file inside the `server` folder. Typical variables are:
-
-```env
-MONGO_URI=your_mongodb_connection_string
-AI_PROVIDER=demo
-OPENAI_API_KEY=your_openai_key
-OPENAI_MODEL=gpt-4
-HF_API_KEY=your_huggingface_key
-HF_MODEL=gpt2
-OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=gpt-4
-```
-
-Supported `AI_PROVIDER` values are `demo`, `openai`, `hf`, and `ollama`.
-
-### Install Dependencies
-
-From the project root:
+### 1) Install dependencies
 
 ```bash
 npm install
@@ -128,58 +96,76 @@ npm install --prefix client
 npm install --prefix server
 ```
 
-### Run Client and Server Together
+### 2) Configure server environment
 
-From the project root:
+Create [server/.env](server/.env) with values like:
+
+```env
+MONGO_URI=your_mongodb_connection_string
+AI_PROVIDER=demo
+
+OPENAI_API_KEY=your_openai_key
+OPENAI_MODEL=gpt-4
+
+HF_API_KEY=your_huggingface_key
+HF_MODEL=gpt2
+
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=gpt-4
+```
+
+Supported AI_PROVIDER values: demo, openai, hf, ollama
+
+### 3) Start both apps
 
 ```bash
 npm run dev
 ```
 
-This starts:
-- Client on `http://localhost:3000`
-- Server on `http://localhost:5000`
+Default local URLs:
 
-### Run Separately
+- Client: http://localhost:3000
+- Server: http://localhost:5000
 
-Server:
+### Run separately
 
 ```bash
 npm run server
-```
-
-Client:
-
-```bash
 npm run client
 ```
 
 ## Testing
 
-Run all tests from the project root:
+Run all tests from the root:
 
 ```bash
 npm test
 ```
 
-The repository includes client component tests and server integration tests.
+Test summaries by category are documented in [docs/tests](docs/tests).
 
 ## Keyboard Shortcuts
 
-Use `Ctrl` on Windows/Linux or `Cmd` on macOS.
+Use Ctrl on Windows/Linux or Cmd on macOS.
 
-- `Ctrl/Cmd + Shift + N`: start a new chat
-- `Ctrl/Cmd + Shift + F`: branch from the most recent assistant response
-- `Ctrl/Cmd + Shift + E`: export current chat as Markdown
-- `Ctrl/Cmd + Shift + J`: export current chat as JSON
-- `Ctrl/Cmd + Shift + R`: rename the current chat
-- `Ctrl/Cmd + Shift + B`: toggle the sidebar
-- `Ctrl/Cmd + Shift + L`: toggle theme
-- `Ctrl/Cmd + K`: open conversation search
+- Ctrl/Cmd + Shift + N: Start a new chat
+- Ctrl/Cmd + Shift + F: Branch from latest assistant response
+- Ctrl/Cmd + Shift + E: Export current chat as Markdown
+- Ctrl/Cmd + Shift + J: Export current chat as JSON
+- Ctrl/Cmd + Shift + R: Rename current chat
+- Ctrl/Cmd + Shift + B: Toggle sidebar
+- Ctrl/Cmd + Shift + L: Toggle theme
+- Ctrl/Cmd + K: Open search
+
+## GitHub Pages
+
+This repository deploys the React client to:
+
+- https://cleytonshelton.github.io/chatGPT-clone/
+
+Note: GitHub Pages only hosts the frontend. The backend API must be deployed separately and configured in the client for full chat functionality in production.
 
 ## Author
 
-- Cleyton Shelton
-
----
+Cleyton Shelton
 
