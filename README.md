@@ -1,18 +1,126 @@
-# ASE285_Individual_Project
+# ChatGPT Clone
 
-## Project Title
-**ChatGPT Clone**
+## Project Overview
 
----
+This project is a full-stack ChatGPT-style application built as an individual ASE285 project. It gives users a structured way to manage AI conversations by supporting multiple chats, persistent storage, branching, search, export, and theme customization.
+
+The README is aligned with the PPP documents and the current codebase, which uses React on the frontend, Express on the backend, and MongoDB with Mongoose for persistence.
+
+## Tech Stack
+
+- Frontend: React 18
+- Backend: Node.js and Express 5
+- Database: MongoDB
+- ODM: Mongoose
+- AI integration: OpenAI SDK with configurable provider support for OpenAI, Hugging Face, Ollama, or demo mode
+- Testing: Jest, React Testing Library, Supertest
+
+## PPP Features Reflected in This Project
+
+### AI Response Generation
+- Sends user prompts from the React client to the Express API.
+- Uses the backend as a secure proxy to the configured AI provider.
+- Keeps API keys out of the frontend.
+
+### Conversation Persistence
+- Stores chats and messages in MongoDB.
+- Reloads saved conversations when the application starts.
+- Preserves message order and chat history for each conversation.
+
+### Multi-Conversation Management
+- Create a new chat.
+- Switch between existing chats.
+- Rename chats.
+- Delete chats.
+- Pin chats in the sidebar.
+
+### Conversation Branching
+- Create a new conversation from an assistant response in an existing chat.
+- Track the parent chat relationship.
+- Record which message index the branch came from.
+
+### Conversation Search and Highlighting
+- Search through conversation titles and message content.
+- Highlight matched text in the sidebar results.
+- Show preview snippets for matching messages.
+
+### Exporting Conversations
+- Export a chat as Markdown.
+- Export a chat as JSON.
+- Include message order and timestamps in exported output.
+
+### Theme and Interface Customization
+- Toggle between light and dark mode.
+- Save theme preference in local storage.
+- Collapse and expand the sidebar.
+- Use keyboard shortcuts for common actions.
+
+### Message Editing and Regeneration
+- Edit an earlier user message.
+- Remove later messages from that point.
+- Generate a new assistant reply based on the edited input.
+
+## Architecture
+
+### Frontend
+- React UI in [client/src/App.js](client/src/App.js) and [client/src/Dashboard/Dashboard.js](client/src/Dashboard/Dashboard.js)
+- Handles active chat state, exports, search, branching actions, and theme toggling
+
+### Backend
+- Express app in [server/app.js](server/app.js)
+- Chat routes in [server/routes/chatRoutes.js](server/routes/chatRoutes.js)
+- Supports chat creation, updates, branching, pinning, title edits, deletion, and AI message generation
+
+### Database Layer
+- MongoDB connection starts in [server/index.js](server/index.js)
+- Mongoose schema is defined in [server/models/Chat.js](server/models/Chat.js)
+
+## Data Model
+
+The app uses a `Chat` document with embedded `messages`.
+
+### Chat
+- `title`: conversation name shown in the sidebar
+- `messages`: ordered array of embedded messages
+- `pinned`: boolean flag for keeping important chats at the top
+- `parentChatId`: reference to the original chat when a branch is created
+- `branchedFromMessageIndex`: message index used as the branch point
+- `createdAt` and `updatedAt`: automatic timestamps
+
+### Message
+- `role`: `user` or `assistant`
+- `content`: message text
+- `createdAt` and `updatedAt`: automatic timestamps
+
+This data model supports the PPP requirements by preserving persistent conversation history, enabling chat organization, and recording branch relationships between related chats.
 
 ## Running the App Locally
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 18 or newer
 - npm
+- A MongoDB instance
+
+### Environment Setup
+
+Create a `.env` file inside the `server` folder. Typical variables are:
+
+```env
+MONGO_URI=your_mongodb_connection_string
+AI_PROVIDER=demo
+OPENAI_API_KEY=your_openai_key
+OPENAI_MODEL=gpt-4
+HF_API_KEY=your_huggingface_key
+HF_MODEL=gpt2
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=gpt-4
+```
+
+Supported `AI_PROVIDER` values are `demo`, `openai`, `hf`, and `ollama`.
 
 ### Install Dependencies
-Run these commands once:
+
+From the project root:
 
 ```bash
 npm install
@@ -20,7 +128,8 @@ npm install --prefix client
 npm install --prefix server
 ```
 
-### Run Client + Server Together (One Terminal)
+### Run Client and Server Together
+
 From the project root:
 
 ```bash
@@ -28,135 +137,49 @@ npm run dev
 ```
 
 This starts:
-- server on `http://localhost:5000`
-- client on `http://localhost:3000`
+- Client on `http://localhost:3000`
+- Server on `http://localhost:5000`
 
-### Run Separately (Two Terminals)
-Terminal 1 (server):
+### Run Separately
+
+Server:
 
 ```bash
 npm run server
 ```
 
-Terminal 2 (client):
+Client:
 
 ```bash
 npm run client
 ```
 
-### Troubleshooting
-If you see `Something is already running on port 3000`, stop the process using that port and re-run `npm run dev`.
+## Testing
 
----
+Run all tests from the project root:
+
+```bash
+npm test
+```
+
+The repository includes client component tests and server integration tests.
 
 ## Keyboard Shortcuts
 
 Use `Ctrl` on Windows/Linux or `Cmd` on macOS.
 
-### Global Actions
-- `Ctrl/Cmd + Shift + N`: Start a new chat
-- `Ctrl/Cmd + Shift + F`: Fork from the most recent assistant response
-- `Ctrl/Cmd + Shift + E`: Export current chat as Markdown
-- `Ctrl/Cmd + Shift + J`: Export current chat as JSON
-- `Ctrl/Cmd + Shift + R`: Rename current chat
-- `Ctrl/Cmd + Shift + B`: Toggle sidebar
-- `Ctrl/Cmd + Shift + L`: Toggle light/dark theme
+- `Ctrl/Cmd + Shift + N`: start a new chat
+- `Ctrl/Cmd + Shift + F`: branch from the most recent assistant response
+- `Ctrl/Cmd + Shift + E`: export current chat as Markdown
+- `Ctrl/Cmd + Shift + J`: export current chat as JSON
+- `Ctrl/Cmd + Shift + R`: rename the current chat
+- `Ctrl/Cmd + Shift + B`: toggle the sidebar
+- `Ctrl/Cmd + Shift + L`: toggle theme
+- `Ctrl/Cmd + K`: open conversation search
 
-### Sidebar Search
-- `Ctrl/Cmd + K`: Open conversation search
+## Author
 
-### Notes
-- Export, fork, and rename shortcuts require an active chat.
-- Shortcuts are disabled while typing in input fields to avoid interrupting message entry.
-- `Ctrl/Cmd + Shift + T` is usually reserved by browsers to reopen tabs, so use `Ctrl/Cmd + Shift + L` for theme toggle.
-
----
-
-## 1. Project Overview
-This project is a full-stack ChatGPT clone that replicates the core functionality of OpenAI's ChatGPT interface. Users can create and manage multiple conversations, send messages to the Ollama AI, and receive AI-generated responses in real time. Conversations are stored persistently so they survive page reloads, and users can delete individual chats or clear all history. The app features a sidebar for navigating between conversations and a clean chat interface similar to ChatGPT's, built with plain JavaScript on the frontend and Node.js with Express on the backend.
-
----
-
-## 2. Problem Statement
-Most conversational AI tools operate as linear message streams with minimal visibility into how context evolves over time. Users cannot easily inspect, reuse, or refine conversations once they grow large, which limits their usefulness for learning, planning, and technical problem solving.
-
-This project addresses that gap by creating a conversational platform where **conversations are organized, analyzable, and adjustable**, allowing users to better understand both their inputs and the AI’s responses.
-
----
-
-## 3. Core Features and Deliverables
-
-### Sprint 1 – Foundation & Communication
-- Real-time message exchange using WebSockets
-- AI response generation via a secure backend API proxy
-- Client-side persistence of conversations using IndexedDB
-- Session-based conversation isolation
-- Message metadata tracking (time, length, role)
-- Connection status indicators (connected / reconnecting / offline)
-
-### Sprint 2 – Interaction Intelligence
-- AI-assisted conversation labeling based on detected topic
-- Inline message evaluation (helpful / unclear flags)
-- Keyword-based message highlighting
-- Markdown and code block rendering
-- Export conversations as structured JSON or Markdown
-
----
-
-## 4. System Requirements
-
-### Functional Requirements
-- Users can create, fork, and delete conversations
-- Messages are delivered in real time with low latency
-- Conversation history persists across browser reloads
-
-### Non-Functional Requirements
-- Average AI response latency under **3 seconds**
-- Automatic WebSocket reconnection on failure
-- UI adapts to multiple screen sizes
-- Backend ensures API keys are never exposed to the client
-
----
-
-## 5. Architecture and Data Design
-
-### Architecture Overview
-The application follows a modular client-server design:
-
-- **Frontend (JavaScript)**
-  - Manages conversation state, rendering, and user controls
-  - Stores persistent data locally using IndexedDB
-
-- **Backend (Node.js + Express)**
-  - Handles authentication of AI requests
-  - Controls prompt construction and context window logic
-
-- **Real-Time Layer**
-  - WebSockets handle bidirectional message delivery and status updates
-
----
-
-### Data Model
-- **UserSession**: Stores user preferences and references to active conversation threads.
-- **ChatThread**: Identified by a unique identifier, includes a label and an ordered collection of messages.
-- **ChatMessage**: Represents an individual exchange, including author (user or assistant), timestamp, and message body.
-
----
-
-## 6. Testing and Validation
-
-- **Manual Validation**
-  - Verify conversation branching and context limits
-  - Test persistence and recovery scenarios
-
-- **Performance Evaluation**
-  - Measure response times under multiple active conversations
-  - Lighthouse accessibility and performance audits
-
----
-
-## 7. Individual Contribution
-- **Cleyton Shelton** – Design, implementation, and testing of all system components
+- Cleyton Shelton
 
 ---
 

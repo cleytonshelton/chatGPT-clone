@@ -1,9 +1,18 @@
 const express = require("express");
 const getChat = require("../models/Chat");
 const { OpenAI } = require("openai");
-const fetch = global.fetch || require('node-fetch'); // for HF or other HTTP APIs
 
-const router = express.Router();
+function resolveFetch(fetchImpl) {
+  if (fetchImpl) {
+    return fetchImpl;
+  }
+
+  if (typeof global.fetch === "function") {
+    return global.fetch.bind(global);
+  }
+
+  return require("node-fetch");
+}
 
 function normalizeChatTitle(title) {
   const fallback = "New Chat";
@@ -97,15 +106,6 @@ function buildKeywordTitle(message = "") {
   return truncateTitle(uniqueWords.map(toTitleCase).join(" "), 60);
 }
 
-// select AI backend via environment variable. "openai", "hf" (Hugging Face), "ollama" or "demo"
-// demo is a built-in no‑setup provider that returns a canned reply.
-const provider = process.env.AI_PROVIDER || "demo";
-console.log(`AI provider set to: ${provider}`);
-
-// configuration for ollama
-const ollamaUrl = process.env.OLLAMA_URL || "http://localhost:11434"; // default local
-const ollamaModel = process.env.OLLAMA_MODEL || "gpt-4";
-
 const getOpenAI = () => {
   // instantiate client lazily to avoid initialization errors
   return new OpenAI({
@@ -113,13 +113,12 @@ const getOpenAI = () => {
   });
 };
 
-// helper to query Hugging Face inference endpoint
-async function getHuggingFaceResponse(prompt) {
+async function getHuggingFaceResponse(prompt, fetchImpl) {
   const model = process.env.HF_MODEL || "gpt2"; // default fallback
   const apiKey = process.env.HF_API_KEY;
   if (!apiKey) throw new Error("HF_API_KEY is required for Hugging Face provider");
 
-  const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+  const res = await fetchImpl(`https://api-inference.huggingface.co/models/${model}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -141,10 +140,18 @@ async function getHuggingFaceResponse(prompt) {
   return data.generated_text || data.text || "";
 }
 
-// Send message and get AI response
-router.post("/message", async (req, res) => {
+function createChatRouter(options = {}) {
+  const router = express.Router();
+  const provider = options.provider || process.env.AI_PROVIDER || "demo";
+  const ollamaUrl = options.ollamaUrl || process.env.OLLAMA_URL || "http://localhost:11434";
+  const ollamaModel = options.ollamaModel || process.env.OLLAMA_MODEL || "gpt-4";
+  const fetchImpl = resolveFetch(options.fetch);
+  const resolveChatModel = () => options.ChatModel || getChat();
+  const openAIFactory = options.getOpenAI || getOpenAI;
+
+  router.post("/message", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     console.log("Received message request:", req.body);
     console.log("Using provider:", provider);
     console.log("Chat type:", typeof Chat, "Chat.create:", typeof Chat.create);
@@ -177,7 +184,7 @@ router.post("/message", async (req, res) => {
 
     if (provider === "openai") {
       // Call OpenAI API
-      const openai = getOpenAI();
+      const openai = openAIFactory();
       console.log("Calling OpenAI API...");
       const model = process.env.OPENAI_MODEL || "gpt-4";
 
@@ -193,14 +200,14 @@ router.post("/message", async (req, res) => {
         .map(m => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
         .join("\n") + "\nAssistant:";
       console.log("Calling Hugging Face inference with prompt", prompt);
-      assistantMessage = await getHuggingFaceResponse(prompt);
+      assistantMessage = await getHuggingFaceResponse(prompt, fetchImpl);
       console.log("HF response received");
     } else if (provider === "ollama") {
       // send only the latest user message as prompt
       const lastUserMsg = chat.messages.filter(m => m.role === "user").slice(-1)[0]?.content || message;
       const prompt = lastUserMsg;
       console.log("Calling Ollama at", ollamaUrl, "model", ollamaModel);
-      const res = await fetch(`${ollamaUrl}/api/generate`, {
+      const res = await fetchImpl(`${ollamaUrl}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -247,12 +254,11 @@ router.post("/message", async (req, res) => {
     console.error("Error in /message endpoint:", error);
     res.status(500).json({ error: error.message });
   }
-});
+  });
 
-// Save chat
-router.post("/", async (req, res) => {
+  router.post("/", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     const payload = { ...req.body };
 
     if (payload.title) {
@@ -269,12 +275,11 @@ router.post("/", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+  });
 
-// Create a branched chat from an existing chat's assistant message
-router.post("/:id/branch", async (req, res) => {
+  router.post("/:id/branch", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     const sourceChat = await Chat.findById(req.params.id);
 
     if (!sourceChat) {
@@ -329,35 +334,32 @@ router.post("/:id/branch", async (req, res) => {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
-});
+  });
 
-// Get all chats
-router.get("/", async (req, res) => {
+  router.get("/", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     const chats = await Chat.find().sort({ updatedAt: -1 });
     res.json(chats);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+  });
 
-// Get single chat
-router.get("/:id", async (req, res) => {
+  router.get("/:id", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     const chat = await Chat.findById(req.params.id);
     if (!chat) return res.status(404).json({ error: "Chat not found" });
     res.json(chat);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+  });
 
-// Update chat (add messages)
-router.put("/:id", async (req, res) => {
+  router.put("/:id", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     const { messages } = req.body;
     
     const chat = await Chat.findByIdAndUpdate(
@@ -371,12 +373,11 @@ router.put("/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+  });
 
-// Toggle pin status
-router.put("/:id/pin", async (req, res) => {
+  router.put("/:id/pin", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     const current = await Chat.findById(req.params.id);
     if (!current) return res.status(404).json({ error: "Chat not found" });
     const chat = await Chat.findByIdAndUpdate(
@@ -388,12 +389,11 @@ router.put("/:id/pin", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+  });
 
-// Update chat title
-router.put("/:id/title", async (req, res) => {
+  router.put("/:id/title", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     const { title } = req.body;
     
     if (!title) {
@@ -411,12 +411,11 @@ router.put("/:id/title", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+  });
 
-// Delete a chat
-router.delete("/:id", async (req, res) => {
+  router.delete("/:id", async (req, res) => {
   try {
-    const Chat = getChat();
+    const Chat = resolveChatModel();
     const chat = await Chat.findByIdAndDelete(req.params.id);
     
     if (!chat) return res.status(404).json({ error: "Chat not found" });
@@ -424,6 +423,19 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+  });
 
-module.exports = router;
+  return router;
+}
+
+module.exports = createChatRouter;
+module.exports.helpers = {
+  buildKeywordTitle,
+  cleanPrompt,
+  cleanSubject,
+  getQuestionStyleTitle,
+  normalizeChatTitle,
+  phraseToTitle,
+  toTitleCase,
+  truncateTitle,
+};

@@ -1,32 +1,15 @@
-const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
 require("dotenv").config();
+const createApp = require("./app");
 
-const app = express();
-
-// Middleware must come BEFORE routes
-app.use(cors());
-app.use(express.json());
-
-// Log all incoming requests
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  next();
-});
-
-// Connect to MongoDB FIRST
-async function startServer() {
+async function startServer({ mongoUri = process.env.MONGO_URI, port = 5000 } = {}) {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(mongoUri);
     console.log("MongoDB Connected");
-    
-    // NOW require models and routes
-    const chatRoutes = require("./routes/chatRoutes");
-    app.use("/api/chats", chatRoutes);
-    
-    app.listen(5000, () => {
-      console.log("Server running on port 5000");
+
+    const app = createApp();
+    return app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
     });
   } catch (err) {
     console.error("MongoDB connection error:", err);
@@ -34,4 +17,8 @@ async function startServer() {
   }
 }
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = { startServer };

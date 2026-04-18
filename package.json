@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm start --prefix client\"",
     "client": "npm start --prefix client",
-    "server": "npm run dev --prefix server"
+    "server": "npm run dev --prefix server",
+    "test": "npm test --prefix server -- --runInBand && npm test --prefix client -- --watchAll=false"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
